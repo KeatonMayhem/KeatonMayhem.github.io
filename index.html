@@ -26,6 +26,9 @@
     .button:hover {
       background-color: #45a049;
     }
+    .hidden {
+      display: none;
+    }
   </style>
 </head>
 <body>
@@ -43,7 +46,9 @@
     <h2>Camera Stream</h2>
     <button class="button" onclick="goBack()">Back to Camera Selection</button>
     <br>
-    <video id="hls-player" controls autoplay width="640" height="360"></video>
+    <video id="camera1" class="hidden" controls autoplay muted></video>
+    <video id="camera2" class="hidden" controls autoplay muted></video>
+    <video id="camera3" class="hidden" controls autoplay muted></video>
   </div>
 
   <!-- Scripts -->
@@ -55,37 +60,53 @@
       'camera3': 'https://skysfs3.trafficwise.org/rtplive/INDOT_657_TI4ZzlUU3suL8tyg/chunklist_w830685811.m3u8',
     };
 
+    // Preload streams
+    function preloadStreams() {
+      Object.keys(cameraStreams).forEach(cameraId => {
+        const videoElement = document.getElementById(cameraId);
+        if (Hls.isSupported()) {
+          const hls = new Hls();
+          hls.loadSource(cameraStreams[cameraId]);
+          hls.attachMedia(videoElement);
+        } else if (videoElement.canPlayType('application/vnd.apple.mpegurl')) {
+          videoElement.src = cameraStreams[cameraId];
+        }
+      });
+    }
+
+    // Start stream for the selected camera
     function startStream(cameraId) {
       // Switch to the player view
       document.getElementById('selection-menu').classList.remove('active');
       document.getElementById('player').classList.add('active');
 
-      // Get the stream URL for the selected camera
-      const streamUrl = cameraStreams[cameraId];
-      
-      // Set up the video player
-      const video = document.getElementById('hls-player');
-      
-      // Initialize HLS.js and play the stream
-      if (Hls.isSupported()) {
-        var hls = new Hls();
-        hls.loadSource(streamUrl);
-        hls.attachMedia(video);
-      } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-        video.src = streamUrl;
-      }
+      // Hide all video elements and show the selected one
+      Object.keys(cameraStreams).forEach(id => {
+        const videoElement = document.getElementById(id);
+        videoElement.classList.add('hidden');
+        videoElement.pause();
+      });
+
+      const selectedVideo = document.getElementById(cameraId);
+      selectedVideo.classList.remove('hidden');
+      selectedVideo.play();
     }
 
+    // Go back to the selection menu
     function goBack() {
-      // Go back to the selection menu
+      // Switch to the selection menu
       document.getElementById('player').classList.remove('active');
       document.getElementById('selection-menu').classList.add('active');
-      
-      // Stop the video and reset source
-      const video = document.getElementById('hls-player');
-      video.pause();
-      video.src = '';
+
+      // Stop all videos
+      Object.keys(cameraStreams).forEach(id => {
+        const videoElement = document.getElementById(id);
+        videoElement.pause();
+      });
     }
+
+    // Preload all streams when the page loads
+    window.onload = preloadStreams;
   </script>
 
 </body>
