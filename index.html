@@ -29,6 +29,11 @@
     .hidden {
       display: none;
     }
+    .camera-details {
+      margin-top: 20px;
+      font-size: 16px;
+      color: #333;
+    }
   </style>
 </head>
 <body>
@@ -39,7 +44,7 @@
     <button class="button" onclick="startStream('camera1')">Camera 1</button>
     <button class="button" onclick="startStream('camera2')">Camera 2</button>
     <button class="button" onclick="startStream('camera3')">Camera 3</button>
-    <h6>Version 0.0.2</h6>
+    <button class="button" onclick="startStream('camera4')">Camera 4</button>
   </div>
 
   <!-- Video Player -->
@@ -50,15 +55,46 @@
     <video id="camera1" class="hidden" controls autoplay muted></video>
     <video id="camera2" class="hidden" controls autoplay muted></video>
     <video id="camera3" class="hidden" controls autoplay muted></video>
+    <video id="camera4" class="hidden" controls autoplay muted></video>
+    <div id="camera-details" class="camera-details"></div>
   </div>
 
   <!-- Scripts -->
   <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
   <script>
     const cameraStreams = {
-      'camera1': 'https://skysfs4.trafficwise.org/rtplive/INDOT_122_j1oPZLX3ASg96AhV/chunklist_w1547976846.m3u8',
-      'camera2': 'https://skysfs3.trafficwise.org/rtplive/INDOT_652_9PEbO_rU8-vhtie-/chunklist_w2131747982.m3u8',
-      'camera3': 'https://skysfs3.trafficwise.org/rtplive/INDOT_657_TI4ZzlUU3suL8tyg/chunklist_w830685811.m3u8',
+      'camera1': {
+        url: 'https://skysfs4.trafficwise.org/rtplive/INDOT_658_0xC-sSuf836lLUG9/chunklist_w1366668844.m3u8',
+        details: {
+          location: '-86.26439,39.54504',
+          direction: 'S',
+          description: 'SR 144 and Whiteland Rd.',
+        },
+      },
+      'camera2': {
+        url: 'https://skysfs4.trafficwise.org/rtplive/INDOT_122_j1oPZLX3ASg96AhV/chunklist_w462413778.m3u8',
+        details: {
+          location: '-86.26439,39.54504',
+          direction: 'SW',
+          description: '69 North of Henderson Ford Rd.',
+        },
+      },
+      'camera3': {
+        url: 'https://skysfs3.trafficwise.org/rtplive/INDOT_189_sosHJYxAzxAIKhVY/chunklist_w1525257403.m3u8',
+        details: {
+          location: '-86.26439,39.54504',
+          direction: 'SW',
+          description: 'SR 44 North of Martinsville',
+        },
+      },
+      'camera4': {
+        url: 'https://skysfs3.trafficwise.org/rtplive/INDOT_159_AA1RWSrwkYhfVmy8/chunklist_w1245806709.m3u8',
+        details: {
+          location: '-86.26439,39.54504',
+          direction: 'SE',
+          description: 'SR 39 Southside of Martinsville',
+        },
+      },
     };
 
     // Preload streams
@@ -67,10 +103,10 @@
         const videoElement = document.getElementById(cameraId);
         if (Hls.isSupported()) {
           const hls = new Hls();
-          hls.loadSource(cameraStreams[cameraId]);
+          hls.loadSource(cameraStreams[cameraId].url);
           hls.attachMedia(videoElement);
         } else if (videoElement.canPlayType('application/vnd.apple.mpegurl')) {
-          videoElement.src = cameraStreams[cameraId];
+          videoElement.src = cameraStreams[cameraId].url;
         }
       });
     }
@@ -91,6 +127,15 @@
       const selectedVideo = document.getElementById(cameraId);
       selectedVideo.classList.remove('hidden');
       selectedVideo.play();
+
+      // Display camera details
+      const details = cameraStreams[cameraId].details;
+      const detailsDiv = document.getElementById('camera-details');
+      detailsDiv.innerHTML = `
+        <p><strong>Location:</strong> ${details.location}</p>
+        <p><strong>Direction:</strong> ${details.direction}</p>
+        <p><strong>Description:</strong> ${details.description}</p>
+      `;
     }
 
     // Go back to the selection menu
@@ -104,6 +149,9 @@
         const videoElement = document.getElementById(id);
         videoElement.pause();
       });
+
+      // Clear camera details
+      document.getElementById('camera-details').innerHTML = '';
     }
 
     // Preload all streams when the page loads
