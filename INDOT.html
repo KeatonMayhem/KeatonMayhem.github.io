@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Camera Stream Player</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+    }
+    #selection-menu, #player {
+      display: none;
+    }
+    #selection-menu.active, #player.active {
+      display: block;
+    }
+    .button {
+      margin: 10px;
+      padding: 10px 20px;
+      font-size: 16px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    .button:hover {
+      background-color: #45a049;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Selection Menu -->
+  <div id="selection-menu" class="active">
+    <h2>Select a Camera</h2>
+    <button class="button" onclick="startStream('camera1')">Camera 1</button>
+    <button class="button" onclick="startStream('camera2')">Camera 2</button>
+    <button class="button" onclick="startStream('camera3')">Camera 3</button>
+  </div>
+
+  <!-- Video Player -->
+  <div id="player">
+    <h2>Camera Stream</h2>
+    <button class="button" onclick="goBack()">Back to Camera Selection</button>
+    <br>
+    <video id="hls-player" controls autoplay width="640" height="360"></video>
+  </div>
+
+  <!-- Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+  <script>
+    const cameraStreams = {
+      'camera1': 'https://skysfs4.trafficwise.org/rtplive/INDOT_122_j1oPZLX3ASg96AhV/chunklist_w1547976846.m3u8',
+      'camera2': 'https://skysfs3.trafficwise.org/rtplive/INDOT_652_9PEbO_rU8-vhtie-/chunklist_w2131747982.m3u8',
+      'camera3': 'https://skysfs3.trafficwise.org/rtplive/INDOT_657_TI4ZzlUU3suL8tyg/chunklist_w830685811.m3u8',
+    };
+
+    function startStream(cameraId) {
+      // Switch to the player view
+      document.getElementById('selection-menu').classList.remove('active');
+      document.getElementById('player').classList.add('active');
+
+      // Get the stream URL for the selected camera
+      const streamUrl = cameraStreams[cameraId];
+      
+      // Set up the video player
+      const video = document.getElementById('hls-player');
+      
+      // Initialize HLS.js and play the stream
+      if (Hls.isSupported()) {
+        var hls = new Hls();
+        hls.loadSource(streamUrl);
+        hls.attachMedia(video);
+      } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+        video.src = streamUrl;
+      }
+    }
+
+    function goBack() {
+      // Go back to the selection menu
+      document.getElementById('player').classList.remove('active');
+      document.getElementById('selection-menu').classList.add('active');
+      
+      // Stop the video and reset source
+      const video = document.getElementById('hls-player');
+      video.pause();
+      video.src = '';
+    }
+  </script>
+
+</body>
+</html>
